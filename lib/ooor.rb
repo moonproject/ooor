@@ -42,7 +42,7 @@ module Ooor
   module OoorBehavior
     extend ActiveSupport::Concern
     module ClassMethods
-      
+
       attr_accessor :default_config, :default_session, :cache_store
 
       IRREGULAR_CONTEXT_POSITIONS = {
@@ -57,11 +57,17 @@ module Ooor
         check_recursion: 1
       }
 
+      def set_default_config(config)
+        config = session_handler.format_config(config)
+        config.merge!(generate_constants: true)
+        self.default_config = config
+      end
+
       def new(config={})
-        Ooor.default_config = config.merge(generate_constants: true)
-        session = session_handler.retrieve_session(config, :noweb)
-        if config[:database] && config[:password]
-          session.global_login(config)
+        set_default_config(config)
+        session = session_handler.retrieve_session(default_config, :noweb)
+        if default_config[:database] && default_config[:password] && default_config[:bootstrap] != false
+          session.global_login()
         end
         Ooor.default_session = session
       end

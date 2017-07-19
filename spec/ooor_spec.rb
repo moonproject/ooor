@@ -16,8 +16,10 @@ OOOR_PASSWORD = ENV['OOOR_PASSWORD'] || 'admin'
 OOOR_DATABASE = ENV['OOOR_DATABASE'] || 'ooor_test'
 OOOR_ODOO_VERSION = ENV['VERSION'] || '10.0'
 
-#RSpec executable specification; see http://rspec.info/ for more information.
-#Run the file with the rspec command  from the rspec gem
+ENV['OOOR_DATABASE'] = nil # removed to enable testing no login if no database
+
+# RSpec executable specification; see http://rspec.info/ for more information.
+# Run the file with the rspec command  from the rspec gem
 describe Ooor do
   before(:all) do
     @ooor = Ooor.new(url: OOOR_URL, username: OOOR_USERNAME, password: OOOR_PASSWORD)
