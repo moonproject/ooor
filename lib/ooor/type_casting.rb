@@ -163,7 +163,7 @@ module Ooor
     def cast_association(k)
       if self.class.one2many_associations[k]
         if @loaded_associations[k]
-          v = @loaded_associations[k].select {|i| i.changed?}
+          v = @loaded_associations[k].select {|i| i&.changed?}
           v = @associations[k] if v.empty?
         else
           v = @associations[k]
