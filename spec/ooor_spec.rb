@@ -16,11 +16,19 @@ OOOR_PASSWORD = ENV['OOOR_PASSWORD'] || 'admin'
 OOOR_DATABASE = ENV['OOOR_DATABASE'] || 'ooor_test'
 OOOR_ODOO_VERSION = ENV['VERSION'] || '10.0'
 
-#RSpec executable specification; see http://rspec.info/ for more information.
-#Run the file with the rspec command  from the rspec gem
+
+# RSpec executable specification; see http://rspec.info/ for more information.
+# Run the file with the rspec command  from the rspec gem
 describe Ooor do
-  before(:all) do
-    @ooor = Ooor.new(url: OOOR_URL, username: OOOR_USERNAME, password: OOOR_PASSWORD)
+  before do
+    ENV['OOOR_URL'] = nil # removed to avoid automatic login when testing
+    ENV['OOOR_DATABASE'] = nil
+    @ooor ||= Ooor.new(url: OOOR_URL, username: OOOR_USERNAME, password: OOOR_PASSWORD)
+  end
+
+  after do
+   ENV['OOOR_URL'] = OOOR_URL
+   ENV['OOOR_DATABASE'] = OOOR_DATABASE
   end
 
   it "should keep quiet if no database is mentioned" do
@@ -503,6 +511,20 @@ describe Ooor do
 
       it "should support reloading relation" do
         expect(Ooor.default_session.const_get('product.product').where(type: 'service').reload.all).to be_kind_of(Array)
+      end
+
+      it "should support pre-fetching associations" do
+        products = Ooor.default_session.const_get('product.product').limit(10).includes('categ_id').all
+        expect(products.first.loaded_associations['categ_id']).to be_kind_of(ProductCategory)
+        expect(products.first.categ_id).to be_kind_of(ProductCategory)
+
+        partners = Ooor.default_session.const_get('res.partner').limit(30).includes('user_ids').all
+        expect(partners.first.loaded_associations['user_ids']).to be_kind_of(Array)
+        expect(partners.first.user_ids).to be_kind_of(Array)
+
+        # recursive includes:
+        products = Ooor.default_session.const_get('product.product').limit(50).includes(categ_id: {includes: ['parent_id']}).all
+        expect(products[6].categ_id.loaded_associations['parent_id']).to be_kind_of(ProductCategory)
       end
     end
 
