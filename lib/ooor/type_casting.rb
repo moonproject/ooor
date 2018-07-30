@@ -154,8 +154,8 @@ module Ooor
     end
 
     def get_changed_values
-      attribute_keys = changed.select {|k| self.class.fields.has_key?(k)} - BLACKLIST
-      association_keys = changed.select {|k| self.class.associations_keys.index(k)}
+      attribute_keys = saved_changes.keys.select {|k| self.class.fields.has_key?(k)} - BLACKLIST
+      association_keys = saved_changes.keys.select {|k| self.class.associations_keys.index(k)}
       return attribute_keys, association_keys
     end
 
@@ -163,7 +163,7 @@ module Ooor
     def cast_association(k)
       if self.class.one2many_associations[k]
         if @loaded_associations[k]
-          v = @loaded_associations[k].select {|i| i&.changed?}
+          v = @loaded_associations[k].select {|i| i.saved_changes?}
           v = @associations[k] if v.empty?
         else
           v = @associations[k]
